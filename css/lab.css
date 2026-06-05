@@ -184,6 +184,20 @@ body::after {
   max-width: 34ch;
   text-align: right;
 }
+/* On narrow screens the baseline row crams the heading (wrapping it) and jams the
+   right-aligned blurb beside it — stack it and left-align instead. */
+@media (max-width: 720px) {
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .section-head p {
+    margin-left: 0;
+    max-width: none;
+    text-align: left;
+  }
+}
 
 /* ---- panel surface ---- */
 .panel {
@@ -200,10 +214,12 @@ body::after {
    ========================================================================== */
 .demo-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
+  /* minmax(0, 1fr) — not bare 1fr — so the track can shrink below its content's
+     min-content width instead of forcing the page wider. */
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
   gap: 28px;
 }
-@media (max-width: 760px) { .demo-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .demo-grid { grid-template-columns: minmax(0, 1fr); } }
 
 .sidebar {
   padding: 22px 16px;
@@ -310,10 +326,13 @@ body::after {
    ========================================================================== */
 .lab {
   display: grid;
-  grid-template-columns: 1fr minmax(300px, 380px);
+  /* minmax(0, 1fr) on the stage column so the live code readout (white-space: pre)
+     in the controls scrolls inside its own box instead of blowing out the grid
+     track — which was forcing the whole page wider than the viewport on mobile. */
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
   gap: 28px;
 }
-@media (max-width: 860px) { .lab { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
 
 .stage {
   display: flex;
@@ -325,6 +344,7 @@ body::after {
   min-height: 360px;
   position: relative;
   overflow: hidden;
+  min-width: 0; /* allow the grid item to shrink below its content (mobile) */
 }
 .stage-buttons {
   display: flex;
@@ -370,7 +390,7 @@ body::after {
   background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--ink) 8%, transparent));
 }
 
-.controls { padding: 26px 28px; display: flex; flex-direction: column; gap: 22px; }
+.controls { padding: 26px 28px; display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 .controls h3 {
   font-family: "Bricolage Grotesque", serif;
   margin: 0;
@@ -462,6 +482,9 @@ body::after {
   color: #d8cff0;
   overflow-x: auto;
   white-space: pre;
+  min-width: 0;   /* with the parents shrinkable, overflow-x: auto now scrolls the
+                     code here instead of the whole page */
+  max-width: 100%;
 }
 [data-theme="light"] .code { background: rgba(20, 30, 55, 0.06); color: #3a3258; }
 .code .tok-prop { color: #9bb8ff; }
