@@ -9,8 +9,7 @@
 [![types](https://img.shields.io/npm/types/@inova.dev/jelly-ui)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
 [![license](https://img.shields.io/npm/l/@inova.dev/jelly-ui?color=blue)](./LICENSE)
 
-📦 **npm:** [`@inova.dev/jelly-ui`](https://www.npmjs.com/package/@inova.dev/jelly-ui) &nbsp;·&nbsp; ▶ **Playground:** [_live demo_](#)
-<!-- TODO: replace the # above with your deployed playground URL (e.g. the Vercel deployment) -->
+📦 **npm:** [`@inova.dev/jelly-ui`](https://www.npmjs.com/package/@inova.dev/jelly-ui) &nbsp;·&nbsp; ▶ **Playground:** [jelly-ui.vercel.app](https://jelly-ui.vercel.app/)
 
 A glowing **3D-jelly + liquid-glass** icon-button material for React. Each button
 is driven by a single accent colour (`color` → CSS `--c`); everything else — the
