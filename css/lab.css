@@ -1,0 +1,481 @@
+/* ============================================================================
+   JELLY LAB — showcase environment (NOT shipped to BIAB; this is the studio)
+   ========================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+:root {
+  /* dark "studio" by default — the popsicle's moody backdrop */
+  --bg-0: #15101f;
+  --bg-1: #1d1530;
+  --panel: rgba(255, 255, 255, 0.045);
+  --panel-line: rgba(255, 255, 255, 0.09);
+  --ink: #ece7f6;
+  --ink-dim: #a99fc4;
+  --ink-faint: #6f6690;
+  --accent: #c77dff;
+  --grain: 0.04;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  /* the frosted blue BIAB sidebar environment */
+  --bg-0: #dbe6f0;
+  --bg-1: #c9dcec;
+  --panel: rgba(255, 255, 255, 0.55);
+  --panel-line: rgba(40, 60, 90, 0.10);
+  --ink: #2a3550;
+  --ink-dim: #5b6a86;
+  --ink-faint: #8a97b0;
+  --accent: #5b7cf0;
+  --grain: 0.025;
+  color-scheme: light;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(120% 80% at 12% -10%, color-mix(in oklab, var(--accent) 22%, transparent), transparent 60%),
+    radial-gradient(100% 70% at 100% 0%, color-mix(in oklab, #ff7ad9 16%, transparent), transparent 55%),
+    radial-gradient(120% 90% at 50% 120%, color-mix(in oklab, #5bb8ff 14%, transparent), transparent 60%),
+    linear-gradient(165deg, var(--bg-1), var(--bg-0));
+  background-attachment: fixed;
+  transition: color 0.5s ease, background 0.6s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* subtle film grain so the gradients never band */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- layout ---- */
+.wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: clamp(24px, 5vw, 64px) clamp(20px, 4vw, 48px) 96px;
+}
+
+/* ---- masthead ---- */
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(32px, 6vw, 64px);
+}
+
+.brand { display: flex; align-items: center; gap: 18px; }
+
+.brand-mark {
+  --c: #d65bff;
+  --jelly-size: 58px;
+  flex: none;
+}
+
+.title {
+  font-family: "Bricolage Grotesque", serif;
+  font-weight: 700;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 0.94;
+  letter-spacing: -0.02em;
+  margin: 0;
+  background: linear-gradient(92deg, var(--ink), color-mix(in oklab, var(--accent) 60%, var(--ink)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.title em {
+  font-style: italic;
+  background: linear-gradient(92deg, #ff7ad9, #c77dff 55%, #5bb8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 6px;
+}
+.lede {
+  margin: 14px 0 0;
+  max-width: 46ch;
+  color: var(--ink-dim);
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+/* ---- theme toggle ---- */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.theme-toggle button {
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.theme-toggle button[aria-pressed="true"] {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--accent) 26%, transparent);
+}
+
+/* ---- section scaffolding ---- */
+.section { margin-top: clamp(48px, 8vw, 88px); }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.section-head h2 {
+  font-family: "Bricolage Grotesque", serif;
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.section-head .num {
+  font-family: "Bricolage Grotesque", serif;
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+.section-head p {
+  margin: 0;
+  margin-left: auto;
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  max-width: 34ch;
+  text-align: right;
+}
+
+/* ---- panel surface ---- */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 26px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================================
+   1. IN-CONTEXT SIDEBAR  (faithful BIAB nav, jelly-fied)
+   ========================================================================== */
+.demo-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 28px;
+}
+@media (max-width: 760px) { .demo-grid { grid-template-columns: 1fr; } }
+
+.sidebar {
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.nav-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 18px 14px 8px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.25s, border-color 0.25s;
+}
+.nav-item:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.nav-item.is-current {
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.nav-item .label {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+.nav-item.is-current .label { color: var(--ink); }
+.nav-item .jelly { --jelly-size: 46px; flex: none; }
+
+/* the right pane of the demo: caption + notes */
+.demo-note {
+  padding: 30px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+.demo-note h3 {
+  font-family: "Bricolage Grotesque", serif;
+  font-size: 1.3rem;
+  margin: 0;
+}
+.demo-note p { margin: 0; color: var(--ink-dim); line-height: 1.6; }
+.demo-note .pill {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 26%, transparent);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+/* ============================================================================
+   2. THE PALETTE  (every icon as a jelly chip)
+   ========================================================================== */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 14px;
+}
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 12px 18px;
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--ink) 3%, transparent);
+  border: 1px solid var(--panel-line);
+  transition: transform 0.3s cubic-bezier(0.22, 1.2, 0.36, 1), background 0.3s;
+}
+.swatch:hover { transform: translateY(-3px); background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.swatch .jelly { --jelly-size: 60px; }
+.swatch .name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+/* 50-color spectrum */
+.spectrum-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+  gap: 16px 14px;
+  justify-items: center;
+}
+.spectrum-cell { display: grid; place-items: center; }
+
+/* ============================================================================
+   3. LAB CONTROLS  +  live code readout
+   ========================================================================== */
+.lab {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 380px);
+  gap: 28px;
+}
+@media (max-width: 860px) { .lab { grid-template-columns: 1fr; } }
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 48px;
+  min-height: 360px;
+  position: relative;
+  overflow: hidden;
+}
+.stage-buttons {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* segmented preview-shape toggle */
+.shape-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--ink) 8%, transparent);
+  border: 1px solid var(--panel-line);
+}
+.shape-toggle button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 0;
+  padding: 7px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.shape-toggle button[aria-pressed="true"] {
+  color: var(--ink);
+  background: color-mix(in oklab, var(--accent) 24%, transparent);
+}
+.stage .jelly { --jelly-size: var(--lab-size, 128px); }
+.stage-floor {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 38%;
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--ink) 8%, transparent));
+}
+
+.controls { padding: 26px 28px; display: flex; flex-direction: column; gap: 22px; }
+.controls h3 {
+  font-family: "Bricolage Grotesque", serif;
+  margin: 0;
+  font-size: 1.1rem;
+}
+.control { display: flex; flex-direction: column; gap: 9px; }
+.control .row { display: flex; justify-content: space-between; align-items: baseline; }
+.control label { font-size: 0.86rem; font-weight: 600; }
+.control .val { font-family: "Geist Mono", ui-monospace, monospace; font-size: 0.78rem; color: var(--ink-faint); }
+.control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ink) 14%, transparent);
+  cursor: pointer;
+}
+.control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.swatch-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatch-dot {
+  width: 28px; height: 28px;
+  border-radius: 9px;
+  border: 1px solid var(--panel-line);
+  cursor: pointer;
+  transition: transform 0.18s;
+}
+.swatch-dot:hover { transform: scale(1.12); }
+.swatch-dot[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.toggle-row { display: flex; align-items: center; justify-content: space-between; }
+.toggle-row label { font-size: 0.86rem; font-weight: 600; }
+.switch { position: relative; width: 44px; height: 26px; flex: none; }
+.switch input { opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.switch .track {
+  position: absolute; inset: 0; border-radius: 999px;
+  background: color-mix(in oklab, var(--ink) 16%, transparent);
+  transition: background 0.25s;
+}
+.switch .track::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; transition: transform 0.25s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+
+/* code readout */
+.code {
+  margin-top: 22px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.30);
+  border: 1px solid var(--panel-line);
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 0.74rem;
+  line-height: 1.7;
+  color: #d8cff0;
+  overflow-x: auto;
+  white-space: pre;
+}
+[data-theme="light"] .code { background: rgba(20, 30, 55, 0.06); color: #3a3258; }
+.code .tok-prop { color: #9bb8ff; }
+.code .tok-val  { color: #ffb4e6; }
+.code .tok-comment { color: var(--ink-faint); font-style: italic; }
+
+.copy-btn {
+  margin-top: 14px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 32%, transparent);
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.copy-btn:hover { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+.copy-btn:active { transform: scale(0.97); }
+
+/* ---- footer ---- */
+.foot {
+  margin-top: 80px;
+  padding-top: 28px;
+  border-top: 1px solid var(--panel-line);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--ink-faint);
+  font-size: 0.84rem;
+}
+.foot code {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  color: var(--ink-dim);
+}
+
+/* page-load reveal */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal { animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }

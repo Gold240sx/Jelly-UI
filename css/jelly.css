@@ -1,0 +1,570 @@
+/* ============================================================================
+   JELLY UI — icon button system  (v6: one frosted gel surface, continuous glow)
+   ----------------------------------------------------------------------------
+   A single translucent frosted body. The whole top→bottom read is painted as
+   SOFT bands on ONE surface — frosted rim → recess dip → recess floor → lit lip
+   → overhang shade → glowing front face → hot near-white exit at the base — so
+   there's no separate "cap" object floating inside. An inner light core glows
+   up through it; frosted = matte, edges scatter to white, no crisp speculars.
+
+     .jelly        the frosted gel body (all the soft bands + side shimmer)
+     .jelly__core  the light source, suspended low in the gel (lit-from-within)
+     > svg         the icon, embedded under the surface on the glowing face
+
+   ONE knob per icon: `--c`. Theme-reactive via --jf-* scalars + emissive.
+   Hover lights it up from within (no size change); click squishes.
+   ========================================================================== */
+
+@property --mx { syntax: "<percentage>"; inherits: true; initial-value: 50%; }
+@property --my { syntax: "<percentage>"; inherits: true; initial-value: 50%; }
+@property --jelly-dent { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --jelly-press { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --jelly-depth { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --jelly-rim { syntax: "<number>"; inherits: true; initial-value: 0.5; }
+@property --jelly-bloom-boost { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --jelly-bloom-dx { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --jelly-bloom-dy { syntax: "<length>"; inherits: true; initial-value: 0px; }
+@property --halo-y { syntax: "<percentage>"; inherits: true; initial-value: 33%; }
+@property --holo-angle { syntax: "<angle>"; inherits: false; initial-value: 200deg; }
+
+:root {
+  --jelly-size: 52px;
+  --jelly-icon-scale: 0.4;
+
+  --jelly-radius: 30%;
+  --jelly-radius-press: 36% 37% 27% 26% / 47% 46% 25% 24%;  /* squashed (chicklet) */
+
+  --mx: 38%;
+  --my: 26%;
+
+  /* ---- STUDIO DARK: neon frosted gel ---- */
+  --jelly-ink: #0c0316;
+  --jelly-emissive: 1;
+  --jf-frost: 0.50;      /* edge desaturation toward white (lower = more saturated) */
+  --jf-glow: 0.82;       /* well/exit glow share of --c vs white */
+  --jf-hot: 0.55;        /* brightest transmission */
+  --jf-shadow: 0.58;     /* contour-shadow saturation */
+  --jelly-bloom: 0.85;
+  --jelly-bloom-size: 42px;
+  --jelly-dent: 0;       /* cursor-shadow strength (0 at rest, raised on hover) */
+  --jelly-dent-hover: 0.34;  /* cursor-shadow strength while hovering */
+  --jelly-cast: 0.4;     /* resting contact-shadow strength (the press adds more) */
+  --jelly-rim-hover: 0.72;  /* white edge-rim opacity on hover (lower in dark) */
+  --jelly-press-shadow: 0.42;  /* drop-shadow darkness on click */
+  --jf-lighten: 0;       /* added to the base OKLCH lightness */
+  --jf-saturate: 1;      /* multiplies the base OKLCH chroma */
+}
+
+/* ---- FROSTED LIGHT: daylight matte candy (like the reference on white) ---- */
+[data-theme="light"] {
+  --jelly-ink: #2a2350;
+  --jelly-emissive: 0.62;
+  --jf-frost: 0.68;
+  --jf-glow: 0.70;
+  --jf-hot: 0.62;
+  --jf-shadow: 0.40;
+  --jelly-bloom: 0.42;
+  --jelly-bloom-size: 24px;
+  --jelly-cast: 0.02;    /* near-zero resting shadow in light (the press adds it) */
+  --jelly-dent-hover: 0.15;  /* lighter cursor-shadow in light mode */
+  --jelly-rim-hover: 1;  /* full white rim on hover in light mode */
+  --jelly-press-shadow: 0.12;  /* much lighter click shadow in light mode */
+  --jf-lighten: 0.07;    /* lighter base in light mode */
+  --jf-saturate: 1.22;   /* … and more saturated (counters the white-mix wash) */
+}
+
+/* ============================================================================
+   BASE — body + lit front wall + side shimmer + floor bloom
+   ========================================================================== */
+.jelly {
+  --c: #a855f7;
+  --c2: var(--c);          /* 2nd gradient stop — defaults to --c (solid) */
+  --grad: 0;               /* 0 = solid, 1 = two-colour gradient */
+  --grad-angle: 120deg;    /* gradient direction */
+
+  /* the gel's base, lightened + saturated per theme (lighter & MORE vivid in
+     light mode — OKLCH so raising lightness doesn't wash out the chroma).
+     Derived from the BLEND of the two stops so rim / bloom / highlights harmonize. */
+  --c-base: oklch(from color-mix(in oklab, var(--c), var(--c2) 50%)
+    calc(l + var(--jf-lighten)) calc(c * var(--jf-saturate)) h);
+
+  --frost:  color-mix(in oklab, var(--c-base) calc((1 - var(--jf-frost)) * 100%), white);
+  --light:  color-mix(in oklab, var(--c-base) calc((1 - var(--jf-frost) * 0.5) * 100%), white);
+  --mid:    var(--c-base);
+  --glow:   color-mix(in oklab, var(--c-base) calc(var(--jf-glow) * 100%), white);
+  --hot:    color-mix(in oklab, var(--c-base) calc(var(--jf-hot) * 100%), white);
+  /* --jelly-tint is the dark "ink" the shadow tends toward. JS sets it warm
+     (amber) for warm hues and cool (blue) for cool hues, so the internal shadow
+     illumination matches the color's temperature. Defaults to the neutral ink. */
+  --jelly-tint: var(--jelly-ink);
+  --shadow: color-mix(in oklab, var(--c-base) calc(var(--jf-shadow) * 100%), var(--jelly-tint));
+  --jelly-rim: calc(var(--jelly-rim-hover) * 0.5);   /* 50% at rest → full on hover */
+
+  position: relative;
+  inline-size: var(--jelly-size);
+  block-size: var(--jelly-size);
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  border-radius: var(--jelly-radius);
+  isolation: isolate;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: 50% 78%;
+
+  /* .jelly itself paints only the CRISP SILHOUETTE — a dark outer lining, a white
+     rim, the bloom and the contact shadow. The colored gel lives in .jelly__body
+     so it can be contained/feathered independently of these crisp edges. */
+  background: transparent;
+
+  box-shadow:
+    /* press DEPTH shadow — tight (negative spread → SMALLER than the gummy) and
+       only on click, so the button reads as lifted with a little depth */
+    0 8px 11px -16px rgba(0, 0, 0, calc(var(--jelly-press-shadow) * var(--jelly-depth))),
+    /* contact + colored bloom (outset) */
+    0 17px 28px -13px rgba(0, 0, 0, var(--jelly-cast)),
+    0 5px 10px -4px rgba(0, 0, 0, calc(var(--jelly-cast) * 0.6)),
+    var(--jelly-bloom-dx) calc(11px + var(--jelly-bloom-dy)) var(--jelly-bloom-size) -10px
+      color-mix(in oklab, var(--c) calc(var(--jelly-bloom) * var(--jelly-bloom-boost) * 100%), transparent),
+    var(--jelly-bloom-dx) calc(4px + var(--jelly-bloom-dy)) calc(var(--jelly-bloom-size) * 0.7) -6px
+      color-mix(in oklab, var(--hot) calc(var(--jelly-bloom) * var(--jelly-bloom-boost) * 90%), transparent),
+    /* crisp DARK lining around the outside (0 blur, follows the radius) */
+    0 0 0 1px color-mix(in oklab, var(--shadow) 52%, transparent),
+    /* crisp WHITE rim just inside — the bright edge before the translucent zone */
+    inset 0 0 0 1.5px color-mix(in oklab,
+      color-mix(in oklab, white 74%, var(--frost)) calc(var(--jelly-rim) * 100%), transparent),
+    inset 0 2px 2px rgba(255, 255, 255, 0.3),
+    inset 0 -9px 13px -9px color-mix(in oklab, white 45%, var(--frost));
+
+  transition:
+    transform 0.34s cubic-bezier(0.34, 1.3, 0.4, 1),
+    border-radius 0.3s ease,
+    box-shadow 0.34s ease,
+    --jelly-dent 0.3s ease,
+    --jelly-press 0.16s ease,
+    --jelly-depth 0.22s ease,
+    --jelly-rim 0.3s ease,
+    --jelly-bloom-boost 0.3s ease,
+    --jelly-bloom-dx 0.3s ease,
+    --jelly-bloom-dy 0.3s ease,
+    filter 0.34s ease;
+}
+
+/* THE ACCENT BODY — the colored gel, TETHERED to the centre by an elliptical
+   mask: it fades to transparent toward the edges so the page background shows
+   through (a translucent frosted edge, WIDER on the sides and at the bottom
+   corners). The crisp dark line + white rim on .jelly sit outside it. */
+.jelly__body {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    /* press darken (centre dims while clicked) */
+    radial-gradient(64% 58% at 50% 56%,
+      color-mix(in oklab, var(--shadow) calc(var(--jelly-press) * 100%), transparent) 0%,
+      transparent 72%),
+    /* cursor dent (follows the pointer on hover) */
+    radial-gradient(62% 52% at var(--mx) var(--my),
+      color-mix(in oklab, var(--shadow) calc(var(--jelly-dent) * 100%), transparent) 0%,
+      transparent 66%),
+    /* GRADIENT overlay — diagonal --c → --c2, FULLY opaque when on so the colours
+       stay vivid (transparent when --grad is 0). Plain color-mix only — no
+       relative-color syntax — for the broadest browser support. */
+    linear-gradient(var(--grad-angle),
+      color-mix(in srgb, var(--c) calc(var(--grad) * 100%), transparent) 3%,
+      color-mix(in srgb, var(--c2) calc(var(--grad) * 100%), transparent) 97%),
+    /* form light — the front face bulges toward you */
+    radial-gradient(66% 58% at 50% 62%,
+      color-mix(in oklab, var(--glow) 60%, transparent) 0%,
+      color-mix(in oklab, var(--mid) 30%, transparent) 42%,
+      transparent 70%),
+    /* frosted crown → saturated glow → hot near-white exit */
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--frost) 94%, white) 0%,
+      color-mix(in oklab, var(--frost) 76%, transparent) 14%,
+      color-mix(in oklab, var(--light) 42%, var(--mid)) 33%,
+      var(--mid) 56%,
+      var(--glow) 82%,
+      var(--hot) 95%,
+      color-mix(in oklab, var(--hot) 50%, white) 100%);
+  /* containment — narrower horizontally (transparent wider on the sides), tall
+     and biased up so the BOTTOM corners read translucent */
+  -webkit-mask: radial-gradient(66% 96% at 50% 46%, #000 52%, transparent 100%);
+          mask: radial-gradient(66% 96% at 50% 46%, #000 52%, transparent 100%);
+  /* the color layer rests at 80% opacity and reaches full on hover */
+  opacity: 0.8;
+  transition: filter 0.13s ease, opacity 0.3s ease;
+}
+.jelly:hover .jelly__body,
+.jelly-host:hover .jelly .jelly__body { opacity: 1; }
+/* clicked → the accent gel darkens ~10% */
+.jelly:active .jelly__body { filter: brightness(0.9); }
+
+/* TOP-COAT LAYER — a whisper of a glossy top skin. Matches the gummy's own
+   border radius, feathered out at the edges (mask) so it has no hard boundary,
+   with a faint inner shadow. Only ~3% opacity, so it just hints at a top layer. */
+.jelly::before {
+  content: "";
+  position: absolute;
+  inset: 4% 4.5% 6% 4.5%;
+  z-index: 2;
+  border-radius: inherit;            /* matches the gummy, incl. on click/bounce */
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, white 55%, var(--frost)) 0%,
+    transparent 72%);
+  box-shadow:
+    inset 0 7px 12px -3px var(--shadow),
+    inset 0 -6px 10px -4px var(--frost);
+  -webkit-mask: radial-gradient(122% 122% at 50% 42%, #000 48%, transparent 94%);
+          mask: radial-gradient(122% 122% at 50% 42%, #000 48%, transparent 94%);
+  opacity: 0.03;
+}
+
+/* SURFACE GLOSS — a tinted highlight catching the LEFT side, a round glossy spot
+   in the upper-left corner, and a faint overall sheen. Screen-blended (brighten
+   only) and subtle, so it reads as a wet gloss without going plasticky. */
+.jelly::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    /* round glossy spot, upper-left — soft and diffuse */
+    radial-gradient(24% 24% at 26% 22%,
+      color-mix(in oklab, white 40%, var(--light)) 0%,
+      transparent 82%),
+    /* gentle tinted highlight easing in from the left */
+    linear-gradient(100deg,
+      color-mix(in oklab, white 24%, var(--light)) 0%,
+      color-mix(in oklab, var(--light) 14%, transparent) 20%,
+      transparent 46%),
+    /* faint overall top sheen */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, transparent 32%);
+  mix-blend-mode: screen;
+  /* --jelly-gloss scales the whole surface gloss (0 = none) */
+  opacity: calc(var(--jelly-gloss, 1) * 0.7);
+}
+
+/* THE LIGHT SOURCE — suspended low in the belly; permeates the translucent
+   layers above so the glow is continuous from the crown down to the exit. */
+.jelly__core {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(62% 52% at 50% 76%,
+      var(--hot) 0%,
+      color-mix(in oklab, var(--glow) 78%, transparent) 40%,
+      transparent 73%),
+    radial-gradient(98% 82% at 50% 68%,
+      color-mix(in oklab, var(--mid) 40%, transparent) 0%,
+      transparent 72%);
+  filter: blur(2.5px);
+  /* dim the white-ish central glow when a gradient is on, so it doesn't wash the
+     two colours out toward the centre */
+  opacity: calc(var(--jelly-emissive) * (1 - var(--grad) * 0.5));
+}
+
+/* WHITE HALO — a soft light above the icon. When the gummy tilts into
+   perspective on click it rises toward the top edge, so the light reads as
+   catching the outer edge of the jelly. */
+.jelly__halo {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  /* the glow RISES by moving its gradient position (not a transform), so the
+     reflections below — which live on this same element — don't move with it */
+  background: radial-gradient(44% 32% at 50% var(--halo-y),
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 64%);
+  mix-blend-mode: screen;
+  transition: --halo-y 0.14s cubic-bezier(0.05, 0.8, 0.2, 1);
+}
+.jelly:active .jelly__halo { --halo-y: 15%; }
+
+/* BOTTOM-CORNER REFLECTIONS — two wide, thin ovals angled −45°/+45° tucked near
+   the bottom corners. They only appear on the perspective tilt (click), and they
+   FADE in/out (no movement), concentrating soft reflection on the near corners. */
+.jelly__halo::before,
+.jelly__halo::after {
+  content: "";
+  position: absolute;
+  bottom: 4%;
+  width: 38%;
+  height: 24%;            /* taller, not wider — keeps a soft, rounded body */
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+    rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 74%);
+  filter: blur(calc(var(--jelly-size) * 0.024));   /* very soft edge */
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.2s ease;   /* fade only */
+}
+.jelly__halo::before { left: -8%;  transform: rotate(-45deg); }  /* near bottom-left corner */
+.jelly__halo::after  { right: -8%; transform: rotate(45deg); }   /* near bottom-right corner */
+.jelly:active .jelly__halo::before,
+.jelly:active .jelly__halo::after { opacity: 0.55; }
+
+/* THE ICON — embedded under the gel surface, sitting on the glowing front face
+   a touch below center. Soft, low-contrast, slightly translucent so it reads as
+   set INTO the jelly rather than printed on top. */
+.jelly > svg {
+  position: relative;
+  z-index: 3;
+  pointer-events: none;       /* clicks pass through to the gummy button */
+  inline-size: calc(var(--jelly-size) * var(--jelly-icon-scale));
+  block-size: calc(var(--jelly-size) * var(--jelly-icon-scale));
+  /* sits ~5% of the jelly height above center (in the dished top) */
+  transform: translateY(calc(var(--jelly-size) * -0.05));
+  /* at rest the icon is TONAL — a deeper shade of the jelly's own color, like
+     it's carved from the same gel, and slightly dimmed. Hover lifts it lighter. */
+  color: color-mix(in oklab, var(--c) 40%, var(--jelly-ink));
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.72;
+  /* a dark shadow sits under the icon, shifted down ~3% of the gummy height */
+  filter:
+    drop-shadow(0 calc(var(--jelly-size) * 0.03) 2.5px color-mix(in oklab, var(--jelly-ink) 58%, transparent))
+    drop-shadow(0 -0.5px 0.6px rgba(255, 255, 255, 0.5));
+  transition: color 0.3s ease, filter 0.35s ease, opacity 0.3s ease,
+    transform 0.16s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+/* ============================================================================
+   STATES
+   ========================================================================== */
+/* hover: NO size change — the gel lights up from within. Hovering a .jelly-host
+   ancestor (e.g. a nav row) makes the whole gummy react the same way. */
+.jelly:hover,
+.jelly-host:hover .jelly {
+  filter: brightness(1.07) saturate(1.07);
+  --jelly-rim: var(--jelly-rim-hover);   /* white rim brightens to full on hover */
+}
+/* the cursor dent only on direct hover (it tracks the pointer over the gel) */
+.jelly:hover { --jelly-dent: var(--jelly-dent-hover); }
+
+/* direct hover → icon lifts to a lighter shade of its own hue + bloom */
+.jelly:hover > svg {
+  opacity: 1;
+  color: color-mix(in oklab, var(--c) 32%, white);
+  /* the icon BLOOMS on hover — a white core glow + an accent halo */
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 0 10px color-mix(in oklab, var(--glow) 78%, transparent))
+    drop-shadow(0 0 19px color-mix(in oklab, var(--c) 60%, transparent));
+}
+
+/* row / host hover → the icon goes fully white with the same bloom */
+.jelly-host:hover .jelly > svg {
+  opacity: 1;
+  color: #fff;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.9))
+    drop-shadow(0 0 11px color-mix(in oklab, var(--glow) 78%, transparent))
+    drop-shadow(0 0 19px color-mix(in oklab, var(--c) 55%, transparent));
+}
+
+/* click: the gel SQUASHES — flattens ~5% wider and ~5% shorter and rounds a
+   touch (not a circle). The recess reflection rounds with it to track the shape. */
+.jelly:active {
+  /* perspective tilt → the top edge recedes and narrows: the squashed gel reads
+     as a rounded trapezoid (narrow top, wide base) with a convex, domed top. The
+     whole button nudges down ~2% so it doesn't appear to rise off the bottom lip.
+     The icon, as a child, is foreshortened by the same perspective. */
+  transform: perspective(200px) translateY(2%) rotateX(15deg) scale(1.05, 0.95);
+  /* squashed radius (chicklet bulges; pill/rect keep their own shape via the var) */
+  border-radius: var(--jelly-radius-press);
+  --jelly-press: 0.3;
+  /* a tight depth shadow (smaller than the button) appears beneath it */
+  --jelly-depth: 1;
+  /* the bloom shifts ~10% straight DOWN and brightens ~10% on press */
+  --jelly-bloom-boost: 1.1;
+  --jelly-bloom-dy: calc(var(--jelly-size) * 0.1);
+  filter: brightness(1.04);
+  /* FAST-START on press-down so the convex top + rounder corners lead immediately
+     (no slow-start beat); border-radius is even quicker so the corners round first.
+     No overshoot — the only bounce is on release. */
+  transition: transform 0.12s cubic-bezier(0.05, 0.8, 0.2, 1),
+    border-radius 0.17s cubic-bezier(0.12, 0.7, 0.25, 1),
+    filter 0.12s ease, --jelly-press 0.1s ease, --jelly-depth 0.1s ease,
+    --jelly-bloom-boost 0.16s ease, --jelly-bloom-dx 0.16s ease, --jelly-bloom-dy 0.16s ease;
+}
+/* the icon grows 5% and squashes WITH the gel (tilts with the parent perspective) */
+.jelly:active > svg {
+  transform: translateY(calc(var(--jelly-size) * -0.04)) scale(1.05) scaleY(0.93);
+}
+
+/* SECONDARY BOUNCE — added by JS on release; the gel springs back through an
+   overshoot (taller/narrower, top doming forward) before settling. */
+@keyframes jelly-bounce {
+  0%   { transform: perspective(200px) translateY(2%)     rotateX(15deg)    scale(1.05, 0.95);
+         border-radius: var(--jelly-radius-press); }
+  34%  { transform: perspective(220px) translateY(-0.75%) rotateX(-3.75deg) scale(0.979, 1.034); }
+  60%  { transform: perspective(240px) rotateX(1.8deg)    scale(1.013, 0.993); }
+  82%  { transform: perspective(260px) rotateX(-0.6deg)   scale(0.997, 1.006); }
+  100% { transform: perspective(260px) rotateX(0deg)      scale(1, 1);
+         border-radius: var(--jelly-radius); }
+}
+.jelly--bounce {
+  /* 75ms delay after release before the jiggle; `backwards` holds the squashed
+     0% frame during the delay so it doesn't spring back and re-squash */
+  animation: jelly-bounce 0.5s cubic-bezier(0.32, 0.7, 0.4, 1) 75ms backwards;
+}
+
+/* selected nav item — glows brighter (no growth) */
+.jelly[aria-current="true"],
+.jelly.is-active {
+  --jelly-emissive: 1.3;
+  --jelly-bloom: 1.1;
+}
+.jelly[aria-current="true"] > svg,
+.jelly.is-active > svg {
+  color: color-mix(in oklab, var(--c) 42%, white);
+}
+
+/* ============================================================================
+   VARIANTS: labelled buttons (icon left, text right) — same gel material, just
+   auto-width with a flex label on top. --pill = fully rounded, --rect = rounded
+   rectangle.
+   ========================================================================== */
+.jelly--pill,
+.jelly--rect {
+  inline-size: auto;
+  block-size: auto;
+  display: inline-flex;
+  align-items: center;
+}
+/* pill/rect keep their own shape at rest AND when pressed (no chicklet squash) */
+.jelly--pill { --jelly-radius: 999px; --jelly-radius-press: 999px; }
+.jelly--rect {
+  --jelly-radius: calc(var(--jelly-size) * 0.34);
+  --jelly-radius-press: calc(var(--jelly-size) * 0.34);
+}
+/* the 45° corner reflections suit the square chicklet, not the wide buttons */
+.jelly--pill .jelly__halo::before,
+.jelly--pill .jelly__halo::after,
+.jelly--rect .jelly__halo::before,
+.jelly--rect .jelly__halo::after { content: none; }
+/* the accent fills more of a wide button (less side-transparency than a chicklet) */
+.jelly--pill .jelly__body,
+.jelly--rect .jelly__body {
+  -webkit-mask: radial-gradient(88% 92% at 50% 46%, #000 74%, transparent 100%);
+          mask: radial-gradient(88% 92% at 50% 46%, #000 74%, transparent 100%);
+}
+.jelly__label {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--jelly-size) * 0.2);
+  padding: calc(var(--jelly-size) * 0.28) calc(var(--jelly-size) * 0.44)
+           calc(var(--jelly-size) * 0.28) calc(var(--jelly-size) * 0.34);
+  pointer-events: none;
+  transform-origin: center;   /* grows from the centre on press, not a corner */
+  /* faint at rest → full on hover; the opacity (like the colour) lingers 100ms
+     on exit then fades over 300ms, so the lit label doesn't snap off */
+  opacity: 0.55;
+  transition: transform 0.12s cubic-bezier(0.05, 0.8, 0.2, 1), opacity 0.3s ease 0.1s;
+}
+.jelly:hover .jelly__label { opacity: 1; transition-delay: 0s; }
+/* the label (icon + text) grows a little when the button is pressed */
+.jelly:active .jelly__label { transform: scale(1.07); }
+.jelly__label svg {
+  inline-size: calc(var(--jelly-size) * var(--jelly-icon-scale));
+  block-size: calc(var(--jelly-size) * var(--jelly-icon-scale));
+  color: color-mix(in oklab, var(--c) 40%, var(--jelly-ink));
+  stroke: currentColor; fill: none;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 calc(var(--jelly-size) * 0.03) 2.5px
+    color-mix(in oklab, var(--jelly-ink) 58%, transparent));
+  /* the 0.1s delay applies on EXIT (returning to this resting state), so the lit
+     icon lingers ~100ms after the cursor leaves; hover/active zero it for instant on */
+  transition: color 0.3s ease 0.1s, filter 0.35s ease 0.1s;
+}
+.jelly__label > span {
+  font-family: "Bricolage Grotesque", inherit;
+  font-weight: 700;
+  font-size: calc(var(--jelly-size) * 0.3);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--c) 40%, var(--jelly-ink));
+  text-shadow: 0 calc(var(--jelly-size) * 0.02) 2px
+    color-mix(in oklab, var(--jelly-ink) 45%, transparent);
+  transition: color 0.3s ease 0.1s, text-shadow 0.3s ease 0.1s;  /* lingers on exit */
+}
+/* hover → label brightens + the icon blooms (matching the chicklet).
+   transition-delay 0 = lights up instantly on enter (only EXIT is delayed). */
+.jelly:hover .jelly__label svg,
+.jelly:hover .jelly__label > span {
+  color: color-mix(in oklab, var(--c) 32%, white);
+  transition-delay: 0s;
+}
+.jelly:hover .jelly__label svg {
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.8))
+    drop-shadow(0 0 11px color-mix(in oklab, var(--glow) 75%, transparent));
+}
+/* click → the label (icon AND text) blooms */
+.jelly:active .jelly__label { opacity: 1; }
+.jelly:active .jelly__label svg,
+.jelly:active .jelly__label > span {
+  color: color-mix(in oklab, var(--c) 26%, white);
+  transition-delay: 0s;
+}
+.jelly:active .jelly__label > span {
+  text-shadow:
+    0 0 5px rgba(255, 255, 255, 0.65),
+    0 0 14px color-mix(in oklab, var(--glow) 72%, transparent);
+}
+.jelly:active .jelly__label svg {
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 0 13px color-mix(in oklab, var(--glow) 78%, transparent));
+}
+
+/* ============================================================================
+   VARIANT: holographic — iridescent film through the gel
+   ========================================================================== */
+.jelly--holo .jelly__core {
+  background:
+    conic-gradient(from var(--holo-angle, 200deg) at 50% 66%,
+      hsl(330 90% 72% / 0.45),
+      hsl(265 90% 72% / 0.45),
+      hsl(200 90% 72% / 0.45),
+      hsl(160 85% 70% / 0.45),
+      hsl(330 90% 72% / 0.45)),
+    radial-gradient(62% 52% at 50% 76%,
+      var(--hot) 0%,
+      color-mix(in oklab, var(--glow) 78%, transparent) 40%,
+      transparent 73%);
+  transition: --holo-angle 0.9s ease;
+}
+.jelly--holo:hover .jelly__core { --holo-angle: 380deg; }
+
+/* ============================================================================
+   ACCESSIBILITY
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .jelly { transition: box-shadow 0.2s ease, filter 0.2s ease; }
+  .jelly:hover,
+  .jelly:active,
+  .jelly[aria-current="true"],
+  .jelly.is-active { transform: none; }
+}
+.jelly:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--c) 70%, white);
+  outline-offset: 3px;
+}

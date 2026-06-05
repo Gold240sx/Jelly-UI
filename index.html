@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jelly UI — icon system</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/jelly.css?v=3" />
+  <link rel="stylesheet" href="./css/lab.css?v=3" />
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- masthead -->
+    <header class="masthead reveal">
+      <div class="brand">
+        <button class="jelly brand-mark jelly--holo" aria-label="Jelly UI">
+          <span class="jelly__body" aria-hidden="true"></span>
+          <span class="jelly__core" aria-hidden="true"></span>
+          <span class="jelly__halo" aria-hidden="true"></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3c3.5 3 6 5.5 6 9a6 6 0 0 1-12 0c0-3.5 2.5-6 6-9z" />
+          </svg>
+        </button>
+        <div>
+          <p class="kicker">Business-in-a-Box · Design system</p>
+          <h1 class="title">Jelly <em>UI</em></h1>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:14px; align-items:flex-end;">
+        <div class="theme-toggle" role="group" aria-label="Theme">
+          <button data-theme="dark" aria-pressed="true">Studio dark</button>
+          <button data-theme="light" aria-pressed="false">Frosted light</button>
+        </div>
+        <p class="lede">Backlit gel meets liquid glass. Every icon is a single accent
+          color poured into a translucent squircle — emissive core, glossy
+          refractive surface, soft bloom, and a springy wobble on touch.</p>
+      </div>
+    </header>
+
+    <!-- 1. in-context sidebar -->
+    <section class="section reveal" style="animation-delay:.06s">
+      <div class="section-head">
+        <span class="num">01</span>
+        <h2>In context — the nav, jelly-fied</h2>
+        <p>The exact BIAB sidebar, every icon button re-cast as 3D jelly. Click to move the lit state.</p>
+      </div>
+      <div class="demo-grid">
+        <div class="panel sidebar" id="sidebar"></div>
+        <div class="panel demo-note">
+          <span class="pill">Drop-in replacement</span>
+          <h3>Same icons. Same layout. New material.</h3>
+          <p>Nothing about the information architecture changes — only the button
+            surface. The selected item lifts and blooms (here, Helpful Links),
+            mirroring how the live emerald link icon reads as "on".</p>
+          <p>Toggle <strong>Frosted light</strong> above to see the soft, candy
+            tuning that matches the light dashboard; <strong>Studio dark</strong>
+            pushes the neon, lit-from-within look of the reference popsicle.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. palette -->
+    <section class="section reveal" style="animation-delay:.12s">
+      <div class="section-head">
+        <span class="num">02</span>
+        <h2>The palette</h2>
+        <p>One material, twelve flavors. Hover to light up, click to squish.</p>
+      </div>
+      <div class="panel" style="padding:26px;">
+        <div class="swatch-grid" id="palette"></div>
+      </div>
+    </section>
+
+    <!-- 2b. spectrum -->
+    <section class="section reveal" style="animation-delay:.15s">
+      <div class="section-head">
+        <span class="num">—</span>
+        <h2>The spectrum</h2>
+        <p>One recipe, fifty colors. Set <code>--c</code> to anything.</p>
+      </div>
+      <div class="panel" style="padding:26px;">
+        <div class="spectrum-grid" id="spectrum"></div>
+      </div>
+    </section>
+
+    <!-- 3. lab -->
+    <section class="section reveal" style="animation-delay:.18s">
+      <div class="section-head">
+        <span class="num">03</span>
+        <h2>Tune it</h2>
+        <p>Dial the recipe live, then copy the CSS straight into BIAB.</p>
+      </div>
+      <div class="lab">
+        <div class="panel stage">
+          <button class="jelly" id="labJelly" aria-label="Preview"></button>
+          <div id="labButtons" class="stage-buttons"></div>
+          <div class="stage-floor"></div>
+        </div>
+
+        <div class="panel controls">
+          <h3>Recipe</h3>
+
+          <div class="control">
+            <span class="row"><label>Preview</label></span>
+            <div class="shape-toggle" id="shapeToggle" role="group" aria-label="Preview shape">
+              <button data-shape="chicklet" aria-pressed="true">Chicklet</button>
+              <button data-shape="pill">Pill</button>
+              <button data-shape="rect">Rectangle</button>
+            </div>
+          </div>
+
+          <div class="control">
+            <span class="row"><label>Accent color</label></span>
+            <div class="swatch-row" id="labColors"></div>
+          </div>
+
+          <div class="toggle-row">
+            <label for="ctlGrad">Gradient</label>
+            <span class="switch"><input type="checkbox" id="ctlGrad" /><span class="track"></span></span>
+          </div>
+          <div class="control" id="gradBox" hidden>
+            <span class="row"><label>2nd color</label></span>
+            <div class="swatch-row" id="labColors2"></div>
+            <div class="row" style="margin-top:10px;"><label for="ctlAngle">Angle</label><span class="val" id="ctlAngleVal"></span></div>
+            <input type="range" id="ctlAngle" />
+          </div>
+
+          <div class="control">
+            <div class="row"><label for="ctlSize">Size</label><span class="val" id="ctlSizeVal"></span></div>
+            <input type="range" id="ctlSize" />
+          </div>
+          <div class="control">
+            <div class="row"><label for="ctlIcon">Icon</label><span class="val" id="ctlIconVal"></span></div>
+            <input type="range" id="ctlIcon" />
+          </div>
+          <div class="control">
+            <div class="row"><label for="ctlRadius">Corner</label><span class="val" id="ctlRadiusVal"></span></div>
+            <input type="range" id="ctlRadius" />
+          </div>
+          <div class="control">
+            <div class="row"><label for="ctlBloom">Bloom</label><span class="val" id="ctlBloomVal"></span></div>
+            <input type="range" id="ctlBloom" />
+          </div>
+          <div class="control">
+            <div class="row"><label for="ctlGloss">Gloss</label><span class="val" id="ctlGlossVal"></span></div>
+            <input type="range" id="ctlGloss" />
+          </div>
+
+          <div class="toggle-row">
+            <label for="ctlHolo">Holographic sheen</label>
+            <span class="switch"><input type="checkbox" id="ctlHolo" /><span class="track"></span></span>
+          </div>
+
+          <div class="code" id="code"></div>
+          <button class="copy-btn" id="copyBtn">Copy CSS</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot reveal" style="animation-delay:.24s">
+      <span>Jelly UI · standalone prototype</span>
+      <span>core system → <code>css/jelly.css</code> · set <code>--c</code> per icon</span>
+    </footer>
+  </div>
+
+  <script type="module" src="./js/lab.js?v=3"></script>
+</body>
+</html>
