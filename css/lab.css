@@ -408,6 +408,26 @@ body::after {
 .swatch-dot:hover { transform: scale(1.12); }
 .swatch-dot[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
 
+/* the "no accent" chip — a white swatch with a black border and a red slash,
+   the universal "none" mark. Selecting it strips the hue (white glass). */
+.swatch-none {
+  position: relative;
+  background: #fff;
+  border: 1.5px solid #111;
+  overflow: hidden;
+}
+.swatch-none::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 2.5px;
+  border-radius: 2px;
+  background: #e5361f;                       /* red slash */
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
 .toggle-row { display: flex; align-items: center; justify-content: space-between; }
 .toggle-row label { font-size: 0.86rem; font-weight: 600; }
 .switch { position: relative; width: 44px; height: 26px; flex: none; }

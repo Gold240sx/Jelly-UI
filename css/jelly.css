@@ -87,6 +87,8 @@
      Derived from the BLEND of the two stops so rim / bloom / highlights harmonize. */
   --c-base: oklch(from color-mix(in oklab, var(--c), var(--c2) 50%)
     calc(l + var(--jf-lighten)) calc(c * var(--jf-saturate)) h);
+  /* halfway colour between the two gradient stops (= --c for solids) — used for the bloom */
+  --c-mid: color-mix(in oklab, var(--c), var(--c2) 50%);
 
   --frost:  color-mix(in oklab, var(--c-base) calc((1 - var(--jf-frost)) * 100%), white);
   --light:  color-mix(in oklab, var(--c-base) calc((1 - var(--jf-frost) * 0.5) * 100%), white);
@@ -126,7 +128,7 @@
     0 17px 28px -13px rgba(0, 0, 0, var(--jelly-cast)),
     0 5px 10px -4px rgba(0, 0, 0, calc(var(--jelly-cast) * 0.6)),
     var(--jelly-bloom-dx) calc(11px + var(--jelly-bloom-dy)) var(--jelly-bloom-size) -10px
-      color-mix(in oklab, var(--c) calc(var(--jelly-bloom) * var(--jelly-bloom-boost) * 100%), transparent),
+      color-mix(in oklab, var(--c-mid) calc(var(--jelly-bloom) * var(--jelly-bloom-boost) * 100%), transparent),
     var(--jelly-bloom-dx) calc(4px + var(--jelly-bloom-dy)) calc(var(--jelly-bloom-size) * 0.7) -6px
       color-mix(in oklab, var(--hot) calc(var(--jelly-bloom) * var(--jelly-bloom-boost) * 90%), transparent),
     /* crisp DARK lining around the outside (0 blur, follows the radius) */
@@ -559,6 +561,92 @@
   transition: --holo-angle 0.9s ease;
 }
 .jelly--holo:hover .jelly__core { --holo-angle: 380deg; }
+
+/* ============================================================================
+   VARIANT: clear — the liquid-glass cousin. The opaque, backlit gel gives way
+   to a transparent refractive chip: the page reads straight through the belly,
+   and only the frosted rim, the wet surface gloss, a glassy inner-shadow band
+   and a faint accent tint remain. No emissive core — glass isn't lit from
+   within; the colour lives in the rim, the icon, and a soft cast shadow. Hover
+   pours a little colour (and a hint of the inner glow) back in.
+   ========================================================================== */
+.jelly--clear {
+  --jelly-emissive: 0;     /* no inner light source — clear glass isn't backlit */
+  --jelly-bloom: 0.3;      /* glass casts only a faint coloured shadow */
+  /* a MUTED edge in dark — the bright rim read as a hard white stroke against
+     the dark studio; light mode brightens it back below */
+  --jelly-rim: 0.4;
+  --jelly-rim-hover: 0.62;
+  /* the tone the icon/label leans toward so it stays legible on the transparent
+     body: light in dark mode, deep "ink" in light mode (set per-theme) */
+  --jelly-clear-tone: #ffffff;
+}
+[data-theme="light"] .jelly--clear {
+  --jelly-rim: 0.9;        /* a crisp edge reads fine over the light background */
+  --jelly-rim-hover: 1;
+  --jelly-clear-tone: var(--jelly-ink);
+}
+/* the coloured gel becomes an even, edge-to-edge tint — drop the centre-tethered
+   mask so the glass surface reaches the border instead of floating inset, and
+   sit at a low opacity so the background still reads straight through */
+.jelly--clear .jelly__body {
+  -webkit-mask: none;
+          mask: none;
+  opacity: 0.16;
+}
+.jelly--clear:hover .jelly__body,
+.jelly-host:hover .jelly--clear .jelly__body { opacity: 0.3; }
+/* kill the backlight at rest; hover lets a soft tint of it return */
+.jelly--clear .jelly__core { opacity: 0; }
+.jelly--clear:hover .jelly__core,
+.jelly-host:hover .jelly--clear .jelly__core { opacity: 0.35; }
+/* the top-coat hugs the true edge (inset 0) so its inner-shadow band gives the
+   chip glassy depth without reading as a smaller panel floating inside */
+.jelly--clear::before { inset: 0; opacity: 0.4; }
+/* the icon/label is the only saturated mass on the clear gel — tone it toward
+   the theme colour so it stays legible (light in dark, deep in light), and lift
+   the chicklet icon off the now-transparent body with a soft shadow */
+.jelly--clear > svg {
+  color: color-mix(in oklab, var(--c) 64%, var(--jelly-clear-tone));
+  opacity: 0.95;
+  filter:
+    drop-shadow(0 calc(var(--jelly-size) * 0.02) 2px color-mix(in oklab, var(--jelly-ink) 32%, transparent))
+    drop-shadow(0 -0.5px 0.6px rgba(255, 255, 255, 0.5));
+}
+.jelly--clear .jelly__label svg,
+.jelly--clear .jelly__label > span {
+  color: color-mix(in oklab, var(--c) 64%, var(--jelly-clear-tone));
+}
+/* keep hover saturating the icon/label while staying readable in both themes */
+.jelly--clear:hover > svg,
+.jelly--clear:hover .jelly__label svg,
+.jelly--clear:hover .jelly__label > span {
+  color: color-mix(in oklab, var(--c) 78%, var(--jelly-clear-tone));
+}
+
+/* ----------------------------------------------------------------------------
+   …and a NO-ACCENT option — colourless glass. The hue is stripped from the gel
+   (the whole material is rebuilt from a neutral, ignoring --c) and the bloom
+   turns pure white. Best paired with .jelly--clear for clear white glass; alone
+   it reads as a frosted white gel.
+   -------------------------------------------------------------------------- */
+.jelly--neutral {
+  --c-base: #e9eef7;        /* neutral cool-white gel — every band derives from this */
+  --c-mid: #ffffff;         /* the bloom (built from --c-mid / --hot) reads pure white */
+  --neutral-tone: #ffffff;  /* the glyph leans white on dark… */
+}
+[data-theme="light"] .jelly--neutral { --neutral-tone: var(--jelly-ink); }  /* …and ink on light */
+/* the glyph (chicklet icon + labelled icon/text) goes neutral too */
+.jelly--neutral > svg,
+.jelly--neutral .jelly__label svg,
+.jelly--neutral .jelly__label > span {
+  color: color-mix(in oklab, var(--neutral-tone) 80%, var(--jelly-ink));
+}
+.jelly--neutral:hover > svg,
+.jelly--neutral:hover .jelly__label svg,
+.jelly--neutral:hover .jelly__label > span {
+  color: color-mix(in oklab, var(--neutral-tone) 95%, var(--jelly-ink));
+}
 
 /* ============================================================================
    ACCESSIBILITY

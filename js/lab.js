@@ -82,7 +82,8 @@ const LAB_COLORS = [
 
 const state = {
   c: "#d65bff", size: 128, radius: 30, bloom: 0.85, gloss: 1, icon: 0.4,
-  holo: false, shape: "chicklet", grad: false, c2: "#4f86f7", angle: 120,
+  holo: false, clear: false, neutral: false,
+  shape: "chicklet", grad: false, c2: "#4f86f7", angle: 120,
 };
 
 function applyShape() {
@@ -104,7 +105,8 @@ function applyLab() {
   if (labPill) labPill.style.setProperty("--jelly-size", bsize);
   if (labRect) labRect.style.setProperty("--jelly-size", bsize);
   // shared across the chicklet + both buttons
-  const tint = tintFor(state.c);
+  // no-accent uses a neutral, untinted shadow; otherwise tint to the hue's temperature
+  const tint = state.neutral ? null : tintFor(state.c);
   labJellies.forEach((el) => {
     el.style.setProperty("--c", state.c);
     if (tint) el.style.setProperty("--jelly-tint", tint);
@@ -116,6 +118,8 @@ function applyLab() {
     el.style.setProperty("--c2", state.grad ? state.c2 : state.c);
     el.style.setProperty("--grad-angle", state.angle + "deg");
     el.classList.toggle("jelly--holo", state.holo);
+    el.classList.toggle("jelly--clear", state.clear);
+    el.classList.toggle("jelly--neutral", state.neutral);
   });
   renderCode();
 }
@@ -136,7 +140,7 @@ function renderCode() {
   ${P("--jelly-size")}: ${V(state.size + "px")};
   ${P("--jelly-radius")}: ${V(state.radius + "%")};
   ${P("--jelly-bloom")}: ${V(state.bloom)};       ${C("/* outer glow */")}
-  ${P("--jelly-gloss")}: ${V(state.gloss)};${state.holo ? "\n  " + C("/* + .jelly--holo for the iridescent sheen */") : ""}
+  ${P("--jelly-gloss")}: ${V(state.gloss)};${state.holo ? "\n  " + C("/* + .jelly--holo for the iridescent sheen */") : ""}${state.clear ? "\n  " + C("/* + .jelly--clear for the transparent glass body */") : ""}${state.neutral ? "\n  " + C("/* + .jelly--neutral — colourless white glass (ignores --c) */") : ""}
 }`;
 }
 
@@ -176,21 +180,41 @@ function renderLab() {
   });
   applyShape();
 
-  // color swatches
+  // color swatches — plus a "no accent" chip (white / black border / red slash)
+  // that strips the hue to a neutral white glass
   const row = document.getElementById("labColors");
+  const syncAccent = () => {
+    row.querySelectorAll(".swatch-dot").forEach((d) => {
+      const on = d.classList.contains("swatch-none")
+        ? state.neutral
+        : !state.neutral && d.dataset.c === state.c;
+      d.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  };
   LAB_COLORS.forEach((c) => {
     const dot = document.createElement("button");
     dot.className = "swatch-dot";
+    dot.dataset.c = c;
     dot.style.background = c;
-    dot.setAttribute("aria-pressed", c === state.c ? "true" : "false");
     dot.addEventListener("click", () => {
       state.c = c;
-      row.querySelectorAll(".swatch-dot").forEach((d) => d.setAttribute("aria-pressed", "false"));
-      dot.setAttribute("aria-pressed", "true");
+      state.neutral = false;
+      syncAccent();
       applyLab();
     });
     row.appendChild(dot);
   });
+  const none = document.createElement("button");
+  none.className = "swatch-dot swatch-none";
+  none.setAttribute("aria-label", "No accent — white glass");
+  none.title = "No accent — white glass";
+  none.addEventListener("click", () => {
+    state.neutral = true;
+    syncAccent();
+    applyLab();
+  });
+  row.appendChild(none);
+  syncAccent();
 
   // 2nd colour swatches (for the gradient)
   const row2 = document.getElementById("labColors2");
@@ -223,6 +247,11 @@ function renderLab() {
 
   document.getElementById("ctlHolo").addEventListener("change", (e) => {
     state.holo = e.target.checked;
+    applyLab();
+  });
+
+  document.getElementById("ctlClear").addEventListener("change", (e) => {
+    state.clear = e.target.checked;
     applyLab();
   });
 
