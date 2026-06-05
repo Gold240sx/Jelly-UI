@@ -1,11 +1,16 @@
 # @inova.dev/jelly-ui
 
+<p align="center">
+  <img src="./assets/jelly-icon.png" alt="Jelly UI" width="116" height="116" />
+</p>
+
 [![npm version](https://img.shields.io/npm/v/@inova.dev/jelly-ui?color=cb3837&logo=npm)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
 [![npm downloads](https://img.shields.io/npm/dm/@inova.dev/jelly-ui?color=cb3837&logo=npm)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
 [![types](https://img.shields.io/npm/types/@inova.dev/jelly-ui)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
 [![license](https://img.shields.io/npm/l/@inova.dev/jelly-ui?color=blue)](./LICENSE)
 
-📦 **npm:** [`@inova.dev/jelly-ui`](https://www.npmjs.com/package/@inova.dev/jelly-ui)
+📦 **npm:** [`@inova.dev/jelly-ui`](https://www.npmjs.com/package/@inova.dev/jelly-ui) &nbsp;·&nbsp; ▶ **Playground:** [_live demo_](#)
+<!-- TODO: replace the # above with your deployed playground URL (e.g. the Vercel deployment) -->
 
 A glowing **3D-jelly + liquid-glass** icon-button material for React. Each button
 is driven by a single accent colour (`color` → CSS `--c`); everything else — the
@@ -13,6 +18,16 @@ emissive core, the deep subsurface shade, the bloom, the gloss, the rim light �
 is derived from it. Includes frosted-glass (`clear`), holographic (`holo`), and
 colourless white-glass (`neutral`) variants, plus a cursor-tracking specular
 highlight and a springy press bounce.
+
+## Preview
+
+<p align="center">
+  <a href="https://pub-fc716af3e09a4179bf481fa2d68e1f10.r2.dev/org/bd390170-1da0-4f68-af70-e7408576c841/media/library/1780695811042-TUwHtgUZ-Jelly_UI_Page.mp4">
+    <img src="./assets/preview.jpg" alt="Jelly UI — click to watch the preview" width="760" />
+  </a>
+  <br />
+  <a href="https://pub-fc716af3e09a4179bf481fa2d68e1f10.r2.dev/org/bd390170-1da0-4f68-af70-e7408576c841/media/library/1780695811042-TUwHtgUZ-Jelly_UI_Page.mp4"><b>▶ Watch the preview</b></a>
+</p>
 
 ## Install
 
