@@ -1,5 +1,12 @@
 # @inova.dev/jelly-ui
 
+[![npm version](https://img.shields.io/npm/v/@inova.dev/jelly-ui?color=cb3837&logo=npm)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
+[![npm downloads](https://img.shields.io/npm/dm/@inova.dev/jelly-ui?color=cb3837&logo=npm)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
+[![types](https://img.shields.io/npm/types/@inova.dev/jelly-ui)](https://www.npmjs.com/package/@inova.dev/jelly-ui)
+[![license](https://img.shields.io/npm/l/@inova.dev/jelly-ui?color=blue)](./LICENSE)
+
+📦 **npm:** [`@inova.dev/jelly-ui`](https://www.npmjs.com/package/@inova.dev/jelly-ui)
+
 A glowing **3D-jelly + liquid-glass** icon-button material for React. Each button
 is driven by a single accent colour (`color` → CSS `--c`); everything else — the
 emissive core, the deep subsurface shade, the bloom, the gloss, the rim light —
@@ -13,7 +20,14 @@ highlight and a springy press bounce.
 npm i @inova.dev/jelly-ui react
 ```
 
-React **17+** is a peer dependency.
+React **17+** is a peer dependency. Then import the pieces you need — the
+components, the optional icon set, and the stylesheet (once, anywhere in your app):
+
+```tsx
+import { Jelly, JellyPill } from '@inova.dev/jelly-ui';
+import { JellyGlyph, iconColor } from '@inova.dev/jelly-ui/icons';
+import '@inova.dev/jelly-ui/styles.css';
+```
 
 ## Quick start
 
