@@ -6,6 +6,10 @@
 *::before,
 *::after { box-sizing: border-box; }
 
+/* the [hidden] attr must win over .control{display:flex} etc. (it's what hides
+   the gradient's 2nd-color panel until the Gradient toggle is on) */
+[hidden] { display: none !important; }
+
 :root {
   /* dark "studio" by default — the popsicle's moody backdrop */
   --bg-0: #15101f;
@@ -407,9 +411,13 @@ body::after {
 .toggle-row { display: flex; align-items: center; justify-content: space-between; }
 .toggle-row label { font-size: 0.86rem; font-weight: 600; }
 .switch { position: relative; width: 44px; height: 26px; flex: none; }
-.switch input { opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+/* the checkbox sits ON TOP and receives the click; the track is decorative */
+.switch input {
+  position: absolute; inset: 0; z-index: 1;
+  opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer;
+}
 .switch .track {
-  position: absolute; inset: 0; border-radius: 999px;
+  position: absolute; inset: 0; border-radius: 999px; pointer-events: none;
   background: color-mix(in oklab, var(--ink) 16%, transparent);
   transition: background 0.25s;
 }

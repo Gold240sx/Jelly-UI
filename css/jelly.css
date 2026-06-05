@@ -170,12 +170,6 @@
     radial-gradient(62% 52% at var(--mx) var(--my),
       color-mix(in oklab, var(--shadow) calc(var(--jelly-dent) * 100%), transparent) 0%,
       transparent 66%),
-    /* GRADIENT overlay — diagonal --c → --c2, FULLY opaque when on so the colours
-       stay vivid (transparent when --grad is 0). Plain color-mix only — no
-       relative-color syntax — for the broadest browser support. */
-    linear-gradient(var(--grad-angle),
-      color-mix(in srgb, var(--c) calc(var(--grad) * 100%), transparent) 3%,
-      color-mix(in srgb, var(--c2) calc(var(--grad) * 100%), transparent) 97%),
     /* form light — the front face bulges toward you */
     radial-gradient(66% 58% at 50% 62%,
       color-mix(in oklab, var(--glow) 60%, transparent) 0%,
@@ -202,6 +196,18 @@
 .jelly-host:hover .jelly .jelly__body { opacity: 1; }
 /* clicked → the accent gel darkens ~10% */
 .jelly:active .jelly__body { filter: brightness(0.9); }
+
+/* GRADIENT layer — a plain --c → --c2 gradient on its own layer, shown/hidden by
+   OPACITY (var(--grad) is just 0 or 1: no calc, no color-mix, no relative-color —
+   maximum browser compatibility). Sits over the body's structure. */
+.jelly__body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(var(--grad-angle), var(--c) 2%, var(--c2) 98%);
+  opacity: var(--grad);
+}
 
 /* TOP-COAT LAYER — a whisper of a glossy top skin. Matches the gummy's own
    border radius, feathered out at the edges (mask) so it has no hard boundary,
